@@ -1,0 +1,115 @@
+---
+title: "Statistical Inference - Course project - Part 2"
+author: "Christoph Wagner"
+date: "03/15/2020"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 1.) Introduction
+
+This document contains my solutions for part 2 of the final course project of Coursera course "Statistical Inference" (Specialization "Data Mining"). The document has been created using R Markdown and the knitr framework. 
+Part 2 of the course project deals with the analysis of the "ToothGrowth" dataset, which is part of the R datasets package. 
+The analysis comprises a basic summary of the data and hypothesis tests to compare the effects of different supplement types and doses of vitamin C on tooth growth.
+All experiments below have been executed in R (IDE RStudio). Graphics have been plotted using the ggplot2 package. 
+
+## 2.) The ToothGrowth dataset
+The ToothGrowth dataset contains 60 observations of odontoblasts (cells which produce tooth growth) of guinea pigs. The animals received vitamin C in three different doses and by one of two different delivery methods. 
+
+The columns of the dataset contain the following variables:
+
+* len: Length of the odontoblasts
+* supp: Delivery method of vitamin C, either VC (Asorbic acid) or OJ (orange juice)
+* dose: Dose of vitamin C in mg/day
+
+## 3.) Basic summary of the data
+
+First of all, we inspect the dataset using the standard summary functionality of R.
+```{r}
+data("ToothGrowth")
+data<-ToothGrowth 
+str(data) #Determine data types and inspect content
+summary(data) #Display basic statistics about the dataset
+```
+
+We can visualize a histogram over the len values of all observations using the hist function. Of course, this doesn't provide much information because the measured odontoblasts were created under different conditions. 
+
+```{r}
+hist(data$len, breaks=15, main="Histogram of the tooth length (len)", 
+     xlab="Length values")
+```
+
+Until now, the data don't seem to follow the normal distribution.
+
+If we plot the len values by dose, the graph indicates that len grows with higher dose value.
+
+```{r}
+library("ggplot2")
+ggplot(data, aes(x=dose, y=len))+geom_point()+
+  ggtitle("ToothGrowth: Length values by dose")+xlab("Dose in mg/day")+ylab("Length")
+```
+
+In contrast, there is no indication that the growth differs for different applications methods of the vitamin. But they seem to spread more for supplement method "Asorbic Acid".
+
+```{r}
+ggplot(data, aes(x=supp, y=len))+geom_point()+
+  ggtitle("ToothGrowth: Length values by supplement type")+
+  xlab("Supplement type")+ylab("Length")
+```
+
+All in all, at least there is indication that the len data differ depending on dose level. 
+It is not obvious that they also differ by supplement method.
+
+
+## 4.) Hypothesis tests: Tooth growth by supp and dose
+
+In this chapter, we want to test the assumption that tooth growth differs significantly for different dose levels and supplement methods. 
+
+### 4.1) Tooth growth and supplement method
+
+Null hypothesis (H_0): Len values of the tooth in average DON'T differ if vitamin C is applied via different supplement methods.
+
+Alternative hypothesis (H_a): Len values in average differ if vitamin C is applied via different supplement methods.
+
+Assumptions: The len values of the two different supplement methods do not have the same variance (e.g. it could be possible that individuals have a different response to the application method). Additionally, the individuals are different and so, this is an unpaired test. Significance level 5 %.
+
+```{r}
+data_OJ<-data[data[,2]=="OJ",1]
+data_VC<-data[data[,2]=="VC",1]
+t_1<-t.test(data_OJ, data_VC, paired=FALSE, var.equal=FALSE, 
+            alternative="two.sided", conf.level=0.95)
+t_1
+```
+
+Confidence interval: The difference of the average tooth length lies within [`r t_1$conf.int[1]`;`r t_1$conf.int[2]`] with 95 % probability.
+
+Conclusion:
+The mean values indicate that for supplement method "Asorbic Acid", the tooth growth is higher. But as the confidence intervals contains value 0, we cannot reject the assumption of equal average tooth length on a significance level of 5 %.
+
+### 4.2) Tooth growth and dose level
+
+Null hypothesis (H_0): Len values of the tooth in average ARE NOT higher if vitamin C is applied in dose 1.0 instead of 0.5 mg/day.
+
+Alternative hypothesis (H_a): Len values in average ARE HIGHER if vitamin C is applied in 1.0 instead of 0.5 mg/day
+
+Assumptions: As in 4.1) we assume differing variances. Test is unpaired. Significance level 5 %.
+
+```{r}
+data_05<-data[data[,3]==0.5,1]
+data_10<-data[data[,3]==1.0,1]
+t_2<-t.test(data_05, data_10, paired=FALSE, var.equal=FALSE, 
+            alternative="less", conf.level=0.95)
+t_2
+```
+
+Confidence interval: With 95 % probability, tooth of pigs which get dose 0.5 mg/day are smaller than pigs which ghet 1.0 mg/day and the difference lies in the interval [`r t_2$conf.int[1]`;`r t_2$conf.int[2]`]. The small p value indicates that it is very improbable to get the tested data samples under the condition that the null hypothesis is true. 
+
+Conclusion:
+With a significance level of 95 % we can reject the null hypothesis. If vitamin C is applied in 1.0 mg/day instaed of 0.5 mg/day, tooth length is bigger. 
+  
+
