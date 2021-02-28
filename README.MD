@@ -6,7 +6,7 @@ Coursera course: Statistical Inference - Course Project, Version 1.0
 
 This repository contains the final course project of Coursera course "Statistical Inference".
 
-In part 1 of the project, the exponential distribution has been analyzed and visualized using ggplot2 and knitr:
+In part 1 of the project, the exponential distribution is analyzed and visualized using ggplot2 and knitr:
 * Sampling from the distribution
 * Visualizing the distribution
 * Analyzing the distribution of sample means (mean of means, standard deviation)
